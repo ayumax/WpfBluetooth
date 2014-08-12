@@ -18,23 +18,19 @@ namespace BluetoothPhone.Bluetooth
 {
     public class Client
     {
-        public BluetoothClient LocalClient { get; private set; }
-
         private Pbap ProfilePbap;
         private Hfp ProfileHfp;
 
         public Client()
         {
-            LocalClient = new BluetoothClient();
-            LocalClient.Encrypt = true;
-
-            ProfilePbap = new Pbap(this);
-            ProfileHfp = new Hfp(this);
+            ProfilePbap = new Pbap();
+            ProfileHfp = new Hfp();
         }
 
         public BluetoothDeviceInfo[] GetPairDevices()
         {
-            return LocalClient.DiscoverDevices(10, false, true, false);
+            BluetoothClient client = new BluetoothClient();
+            return client.DiscoverDevices(10, false, true, false);
         }
 
         public bool Connect(BluetoothDeviceInfo device)
@@ -43,14 +39,32 @@ namespace BluetoothPhone.Bluetooth
             {
                 ProfilePbap.Connect(device);
                 ProfileHfp.Connect(device);
+
+                Console.WriteLine("OnConnected");
             }
             catch
             {
+                Console.WriteLine("Bluetooth Connected Fail!");
                 return false;
             }
 
             return true;
         }
 
+        public void Tel()
+        {
+            ProfileHfp.Dial();
+        }
+
+        public void getBook()
+        {
+            PhoneBook[] books = ProfilePbap.GetPhoneBooks(PbapFolder.pb);
+
+            foreach (PhoneBook book in books)
+            {
+                Console.WriteLine("{0}, {1}", book.Name, book.PhoneNumbers[0]);
+            }
+        }
+        
     }
 }

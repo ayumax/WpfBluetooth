@@ -40,19 +40,19 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
 
     class Pbap : BluetoothProfile
     {
-        private Client client;
         private ObexClientSession session;
-
         
 
-        public Pbap(Client client)
-            : base(client, BluetoothService.PhonebookAccess)
+        public Pbap()
+            : base( BluetoothService.PhonebookAccess)
         {
         }
 
         protected override void OnConnected()
         {
-            session = new ObexClientSession(localClient.GetStream(), UInt16.MaxValue);
+            LocalClient.Encrypt = true;
+
+            session = new ObexClientSession(LocalClient.GetStream(), UInt16.MaxValue);
 
             session.Connect(new byte[] { 0x79, 0x61, 0x35, 0xf0, 0xf0, 0xc5, 0x11, 0xd8, 0x09, 0x66, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66 });
         }
@@ -76,27 +76,63 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
 
         public PhoneBook[] GetPhoneBooks(PbapFolder Folder)
         {
-            int length = GetPhoneBookCount(Folder);
-
             List<PhoneBook> phoneBookList = new List<PhoneBook>();
 
-            for (int i = 0; i < length; i += 10)
+            var t = Task.Factory.StartNew(() =>
             {
-                using (ObexGetStream Stream = PullPhoneBook(Folder, 10, i))
+                int length = GetPhoneBookCount(Folder);
+
+                for (int i = 0; i < length; i += 10)
                 {
-                    byte[] ba = new byte[UInt16.MaxValue];
-                    int readSize = Stream.Read(ba, 0, UInt16.MaxValue);
+                    using (ObexGetStream Stream = PullPhoneBook(Folder, 10, i))
+                    {
+                        byte[] ba = new byte[UInt16.MaxValue];
+                        int readSize = Stream.Read(ba, 0, UInt16.MaxValue);
 
-                    phoneBookList.AddRange(VCardReader.ParseVCard(UTF8Encoding.UTF8.GetString(ba, 0, readSize)));
+                        phoneBookList.AddRange(VCardReader.ParseVCard(UTF8Encoding.UTF8.GetString(ba, 0, readSize)));
+                    }
+
                 }
+            });
 
-            }
+            t.Wait();
 
             return phoneBookList.ToArray();
         }
 
         public PhoneBook GetPhoneBookFromPhoneNumber(PbapFolder Folder, string PhoneNumber)
         {
+            using (ObexGetStream Stream = PullvCardListing(Folder, 1, 0, PhoneNumber))
+            {
+                byte[] ba = new byte[UInt16.MaxValue];
+                int readSize = Stream.Read(ba, 0, UInt16.MaxValue);
+
+                string handle = VCardReader.ParseVCardListenXML(UTF8Encoding.UTF8.GetString(ba, 0, readSize));
+
+                if (!String.IsNullOrWhiteSpace(handle))
+                {
+                    return GetPhoneBook(Folder, handle);
+                }
+            }
+
+            return null;
+        }
+
+        private PhoneBook GetPhoneBook(PbapFolder Folder, string handle)
+        {
+            using (ObexGetStream Stream = PullvCardEntry(Folder, handle))
+            {
+                byte[] ba = new byte[UInt16.MaxValue];
+                int readSize = Stream.Read(ba, 0, UInt16.MaxValue);
+
+                List<PhoneBook> phoneBookList = VCardReader.ParseVCard(UTF8Encoding.UTF8.GetString(ba, 0, readSize));
+                if (phoneBookList.Count > 0)
+                {
+                    return phoneBookList[0];
+                }
+            }
+
+            return null;
         }
 
         private ObexGetStream PullPhoneBook(PbapFolder Folder, int MaxListCount, int ListStartOffset)

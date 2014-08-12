@@ -16,20 +16,26 @@ namespace BluetoothPhone.Bluetooth.Profile
 {
     abstract class BluetoothProfile
     {
-        protected BluetoothClient localClient { get { return client.LocalClient; } }
+        public BluetoothClient LocalClient { get; private set; }
 
-        private Client client;
         private Guid ProfileID;
+        protected BluetoothDeviceInfo ConnectedDevice;
 
-        public BluetoothProfile(Client client, Guid ProfileID)
+        public BluetoothProfile(Guid ProfileID)
         {
-            this.client = client;
+            LocalClient = new BluetoothClient();
+
             this.ProfileID = ProfileID;
         }
 
         public void Connect(BluetoothDeviceInfo device)
         {
-            localClient.Connect(device.DeviceAddress, ProfileID);
+            LocalClient.Connect(device.DeviceAddress, ProfileID);
+
+            ConnectedDevice = device;
+
+
+            OnConnected();
         }
 
         protected virtual void OnConnected()

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
+using System.IO;
 
 namespace BluetoothPhone.Bluetooth.Profile.Pbap
 {
@@ -59,10 +61,13 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
                     }
                     break;
                 case "TEL":
-                    phoneBook.PhoneNumber = strs[1];
+                    string phoneNumber = strs[1];
+                    phoneNumber = phoneNumber.Replace("-", String.Empty);
+                    phoneNumber = phoneNumber.Replace(" ", String.Empty);
+                    phoneBook.PhoneNumbers.Add(strs[1]);
                     break;
                 case "EMAIL":
-                    phoneBook.EmailAddress = strs[1];
+                    phoneBook.EmailAddresss.Add(strs[1]);
                     break;
                 case "X-IRMC-CALL-DATETIME":
                     string T = strs[1];
@@ -74,6 +79,25 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
                         int.Parse(T.Substring(13, 2)));
                     break;
             }
+        }
+
+
+        public static string ParseVCardListenXML(string VCardsListenXML)
+        {
+            string handle = "";
+
+            XmlDocument doc = new XmlDocument();
+            doc.Load(new StringReader(VCardsListenXML));
+
+            XmlNodeList nodeList = doc.DocumentElement.SelectNodes("card");
+
+            foreach (XmlNode nd in nodeList)
+            {
+                handle = nd.Attributes["handle"].ToString();
+                break;
+            }
+
+            return handle;
         }
     }
 }

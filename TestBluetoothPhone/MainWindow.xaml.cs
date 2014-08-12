@@ -20,9 +20,27 @@ namespace TestBluetoothPhone
     /// </summary>
     public partial class MainWindow : Window
     {
+        private BluetoothPhone.PhoneManager phone;
+
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Window_Initialized(object sender, EventArgs e)
+        {
+            phone = new BluetoothPhone.PhoneManager();
+            phone.InitPhone();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            phone.Tel();
+        }
+
+        private void Button2_Click(object sender, RoutedEventArgs e)
+        {
+            phone.getBook();
         }
     }
 }
