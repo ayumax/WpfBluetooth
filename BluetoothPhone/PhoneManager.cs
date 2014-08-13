@@ -24,19 +24,15 @@ namespace BluetoothPhone
             blueTooth.InitPhone("SC-02E");
         }
 
-        public void Pairing()
-        {
-            blueTooth.Pairing();
-        }
 
         public void Tel()
         {
-            blueTooth.Tel();
+            blueTooth.Tel("05058833540");
         }
 
         public void getBook()
         {
-            blueTooth.getBook();
+            blueTooth.getPhoneBooks(Bluetooth.Profile.Pbap.PbapFolder.pb);
         }
 
         

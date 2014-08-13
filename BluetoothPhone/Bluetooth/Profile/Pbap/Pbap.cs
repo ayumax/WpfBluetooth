@@ -52,8 +52,15 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
         {
             LocalClient.Encrypt = true;
 
-            session = new ObexClientSession(LocalClient.GetStream(), UInt16.MaxValue);
+            SessionConnect();
+        }
 
+        private void SessionConnect()
+        {
+            if (session == null)
+            {
+                session = new ObexClientSession(LocalClient.GetStream(), UInt16.MaxValue);
+            }
             session.Connect(new byte[] { 0x79, 0x61, 0x35, 0xf0, 0xf0, 0xc5, 0x11, 0xd8, 0x09, 0x66, 0x08, 0x00, 0x20, 0x0c, 0x9a, 0x66 });
         }
 
@@ -74,13 +81,17 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
             return length;
         }
 
-        public PhoneBook[] GetPhoneBooks(PbapFolder Folder)
+        public PhoneBook[] GetPhoneBooks(PbapFolder Folder, int MaxNum)
         {
             List<PhoneBook> phoneBookList = new List<PhoneBook>();
 
             var t = Task.Factory.StartNew(() =>
             {
                 int length = GetPhoneBookCount(Folder);
+                if (MaxNum > 0)
+                {
+                    length = Math.Min(length, MaxNum);
+                }
 
                 for (int i = 0; i < length; i += 10)
                 {
@@ -93,6 +104,8 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
                     }
 
                 }
+
+                SessionConnect();
             });
 
             t.Wait();

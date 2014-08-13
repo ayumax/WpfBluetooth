@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Windows;
+using System.Windows.Threading;
 using InTheHand;
 using InTheHand.Net;
 using InTheHand.Net.Bluetooth;
@@ -16,12 +18,17 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
 {
     class Hfp : BluetoothProfile
     {
+        public event Action<string> OnRing;
+
         private CancellationTokenSource TaskCancellation;
         private List<string> SendCmdList;
+
+        private bool IsSendOK;
 
         public Hfp()
             : base(BluetoothService.Handsfree)
         {
+            IsSendOK = true;
             SendCmdList = new List<string>();
         }
 
@@ -36,19 +43,14 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
             {
                 while (true)
                 {
-                    //if (!LocalClient.Connected)
-                    //{
-                    //    Connect(ConnectedDevice);
-                    //    break;
-                    //}
-
                     if (TaskCancellation.IsCancellationRequested)
                     {
                         TaskCancellation.Token.ThrowIfCancellationRequested();
                     }
 
-                    ReceiveAndSend();
-                    Thread.Sleep(1000);
+                    Receive();
+                    Send();
+                    Thread.Sleep(1);
                 }
 
             }, TaskCancellation.Token);
@@ -60,19 +62,9 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
 
         private void ServiceLevelConnectionInitialization()
         {
-            //0 EC and/or NR function
-            //1 Call waiting and 3-way calling
-            //2 CLI presentation capability
-            //3 Voice recognition activation
-            //4 Remote volume control
-            //5 Enhanced call status
-            //6 Enhanced call control
-            //7-31 Reserved for future definition
-
             lock (SendCmdList)
             {
-           
-                SendCmdList.Add("AT+BRSF=20\r");
+                SendCmdList.Add("AT+BRSF=0\r");
 
                 SendCmdList.Add("AT+CIND=?\r");
 
@@ -82,93 +74,116 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
 
 
                 SendCmdList.Add("AT+CLIP=1\r");
-
-                lock (SendCmdList)
-                {
-                    if (SendCmdList.Count > 0)
-                    {
-                        try
-                        {
-                            if (LocalClient.Connected)
-                            {
-                                NetworkStream stream = LocalClient.GetStream();
-
-                                Byte[] dcB = System.Text.Encoding.ASCII.GetBytes(SendCmdList.First());
-                                stream.Write(dcB, 0, dcB.Length);
-
-                                Console.WriteLine("Send:" + SendCmdList.First());
-                                stream.Flush();
-
-                                SendCmdList.RemoveAt(0);
-                            }
-
-                        }
-                        catch
-                        {
-                        }
-                    }
-                }
-                
             }
         }
 
-        private void ReceiveAndSend() 
+        private void Receive() 
         {
             NetworkStream stream = LocalClient.GetStream();
 
             while (stream.DataAvailable)
             {
                 Byte[] sRes = new Byte[200];
+
                 if (stream.Read(sRes, 0, 199) > 0)
                 {
-                    string ReceiveString = System.Text.Encoding.ASCII.GetString(sRes);
+                    string[] ReceiveStrings = System.Text.Encoding.ASCII.GetString(sRes).Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
 
-                    Console.WriteLine(ReceiveString);
-
-                    lock (SendCmdList)
+                    foreach (string receiveString in ReceiveStrings)
                     {
-                        if (SendCmdList.Count > 0)
+                        string receiveValue = receiveString.Trim(new char[] { '\r', '\n', '\0' });
+
+                        if (!String.IsNullOrWhiteSpace(receiveValue))
                         {
-                            try
+                            Console.WriteLine(receiveValue);
+
+                            if (receiveValue == "OK" || receiveValue == "ReceiveString")
                             {
-                                if (LocalClient.Connected)
-                                {
-                                    Byte[] dcB = System.Text.Encoding.ASCII.GetBytes(SendCmdList.First());
-                                    stream.Write(dcB, 0, dcB.Length);
-
-                                    Console.WriteLine("Send:" + SendCmdList.First());
-                                    stream.Flush();
-
-                                    SendCmdList.RemoveAt(0);
-                                }
-
+                                IsSendOK = true;
+                                Thread.Sleep(100);  // "OK"のあとすぐに送信すると受け付けてくれないため100ms待つ
                             }
-                            catch
+                            else
                             {
-                                Console.WriteLine("Send Fail:" + SendCmdList.First());
+                                OnRecive(receiveValue);
                             }
                         }
                     }
                 }
             }
 
+        }
+
+        private void OnRecive(string receiveValue)
+        {
+            string[] values = receiveValue.Split(new char[] { ':' });
+            string className = values[0].TrimStart(new char[] { '+' }).Trim();
+
+            try
+            {
+                IHfpCommandParser CommandParser = Activator.CreateInstance(Type.GetType("BluetoothPhone.Bluetooth.Profile.Hfp." + className)) as IHfpCommandParser;
+                if (CommandParser != null)
+                {
+                    string parameter = (values.Length > 1) ? values[1].Trim() : String.Empty;
+                    CommandParser.ReciveCommand(parameter, this);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private void Send()
+        {
+            lock (SendCmdList)
+            {
+                if (SendCmdList.Count > 0 && IsSendOK)
+                {
+                    try
+                    {
+                        IsSendOK = false;
+
+                        NetworkStream stream = LocalClient.GetStream();
+
+                        Byte[] dcB = System.Text.Encoding.ASCII.GetBytes(SendCmdList.First());
+                        stream.Write(dcB, 0, dcB.Length);
+
+                        Console.WriteLine("Send:" + SendCmdList.First());
+
+                        SendCmdList.RemoveAt(0);
+
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Send Fail:" + SendCmdList.First());
+                    }
+                }
+            }
+        }
+
+        public void Dial(string PhoneNumber)
+        {
+            lock (SendCmdList)
+            {
+                SendCmdList.Add(String.Format("ATD{0}\r", PhoneNumber));
+            }
+        }
+
+        public void DoRing(string PhoneNumber)
+        {
+            System.Windows.Threading.Dispatcher dispatcher = System.Windows.Application.Current.Dispatcher;
+            if (dispatcher.CheckAccess())
+            {
+                if (OnRing != null)
+                {
+                    OnRing(PhoneNumber);
+                }
+            }
+            else
+            {
+                dispatcher.Invoke(() => DoRing(PhoneNumber));
+            }
+
            
         }
-
-        public void Dial()
-        {
-          
-                //SendCmdList.Add("AT+CMER\r");
-                //SendCmdList.Add("AT+CIND=?\r");
-
-
-                //SendCmdList.Add("AT+CLIP=1\r");
-
-                //"ATD117;\r";
-
-            
-
-        }
-
     }
 }

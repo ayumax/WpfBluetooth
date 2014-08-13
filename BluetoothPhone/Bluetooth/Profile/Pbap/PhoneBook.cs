@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BluetoothPhone.Bluetooth.Profile.Pbap
 {
-    class PhoneBook
+    public class PhoneBook
     {
         public string Name { get; set; }
         public List<string> PhoneNumbers { get; set; }

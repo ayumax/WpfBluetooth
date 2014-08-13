@@ -30,8 +30,11 @@ namespace BluetoothPhone.Bluetooth
 
             ProfilePbap = new Pbap();
             ProfileHfp = new Hfp();
+
+            ProfileHfp.OnRing += ProfileHfp_OnRing;
         }
 
+ 
         public void InitPhone(string phoneName)
         {
             ConnectPhoneName = phoneName;
@@ -48,8 +51,6 @@ namespace BluetoothPhone.Bluetooth
                 }
             }
 
-            // 見つからなかったのでサーチ
-            //Pairing();
         }
 
         public BluetoothDeviceInfo[] GetPairDevices()
@@ -58,22 +59,15 @@ namespace BluetoothPhone.Bluetooth
             return client.DiscoverDevices(10, false, true, false);
         }
 
-        public void Pairing()
-        {
-            bluetoothPair.OnSearchDevice += bluetoothPair_OnSearchDevice;
-            bluetoothPair.Search();
-        }
-
-        void bluetoothPair_OnSearchDevice(BluetoothDeviceInfo obj)
-        {
-            if (obj.DeviceName == ConnectPhoneName)
-            {
-                Connect(obj);
-            }
-        }
 
         public bool Connect(BluetoothDeviceInfo device)
         {
+            if (device.Connected)
+            {
+                // すでに接続済み
+                return true;
+            }
+
             try
             {
                 ProfilePbap.Connect(device, bluetoothPair);
@@ -90,26 +84,28 @@ namespace BluetoothPhone.Bluetooth
             return true;
         }
 
-        public void Tel()
+        public void Tel(string PhoneNumber)
         {
-            ProfileHfp.Dial();
+            ProfileHfp.Dial(PhoneNumber);
         }
 
-        public void getBook()
+        public PhoneBook[] getPhoneBooks(PbapFolder Folder, int MaxNum = -1)
         {
-            //PhoneBook[] books = ProfilePbap.GetPhoneBooks(PbapFolder.pb);
+            return ProfilePbap.GetPhoneBooks(Folder, MaxNum);
+        }
+        
 
-            //foreach (PhoneBook book in books)
-            //{
-            //    Console.WriteLine("{0}, {1}", book.Name, book.PhoneNumbers[0]);
-            //}
+         
 
-            PhoneBook book = ProfilePbap.GetPhoneBookFromPhoneNumber(PbapFolder.pb, "08036865985");
+
+        void ProfileHfp_OnRing(string phoneNumber)
+        {
+            PhoneBook book = ProfilePbap.GetPhoneBookFromPhoneNumber(PbapFolder.pb, phoneNumber);
             if (book != null)
             {
                 Console.WriteLine("{0}, {1}", book.Name, book.PhoneNumbers[0]);
             }
         }
-        
+
     }
 }
