@@ -28,8 +28,7 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
         protected override void OnConnected()
         {
             NetworkStream peerStream = LocalClient.GetStream();
-            peerStream.WriteTimeout = 5000;
-            peerStream.ReadTimeout = 5000;
+
 
             TaskCancellation = new CancellationTokenSource();
 
@@ -37,17 +36,80 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
             {
                 while (true)
                 {
+                    //if (!LocalClient.Connected)
+                    //{
+                    //    Connect(ConnectedDevice);
+                    //    break;
+                    //}
+
                     if (TaskCancellation.IsCancellationRequested)
                     {
                         TaskCancellation.Token.ThrowIfCancellationRequested();
                     }
 
                     ReceiveAndSend();
-                    Thread.Sleep(1);
+                    Thread.Sleep(1000);
                 }
 
             }, TaskCancellation.Token);
 
+
+            
+           ServiceLevelConnectionInitialization();
+        }
+
+        private void ServiceLevelConnectionInitialization()
+        {
+            //0 EC and/or NR function
+            //1 Call waiting and 3-way calling
+            //2 CLI presentation capability
+            //3 Voice recognition activation
+            //4 Remote volume control
+            //5 Enhanced call status
+            //6 Enhanced call control
+            //7-31 Reserved for future definition
+
+            lock (SendCmdList)
+            {
+           
+                SendCmdList.Add("AT+BRSF=20\r");
+
+                SendCmdList.Add("AT+CIND=?\r");
+
+                SendCmdList.Add("AT+CIND?\r");
+
+                SendCmdList.Add("AT+CMER=3,0,0,1,0\r");
+
+
+                SendCmdList.Add("AT+CLIP=1\r");
+
+                lock (SendCmdList)
+                {
+                    if (SendCmdList.Count > 0)
+                    {
+                        try
+                        {
+                            if (LocalClient.Connected)
+                            {
+                                NetworkStream stream = LocalClient.GetStream();
+
+                                Byte[] dcB = System.Text.Encoding.ASCII.GetBytes(SendCmdList.First());
+                                stream.Write(dcB, 0, dcB.Length);
+
+                                Console.WriteLine("Send:" + SendCmdList.First());
+                                stream.Flush();
+
+                                SendCmdList.RemoveAt(0);
+                            }
+
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+                
+            }
         }
 
         private void ReceiveAndSend() 
@@ -62,60 +124,50 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
                     string ReceiveString = System.Text.Encoding.ASCII.GetString(sRes);
 
                     Console.WriteLine(ReceiveString);
+
+                    lock (SendCmdList)
+                    {
+                        if (SendCmdList.Count > 0)
+                        {
+                            try
+                            {
+                                if (LocalClient.Connected)
+                                {
+                                    Byte[] dcB = System.Text.Encoding.ASCII.GetBytes(SendCmdList.First());
+                                    stream.Write(dcB, 0, dcB.Length);
+
+                                    Console.WriteLine("Send:" + SendCmdList.First());
+                                    stream.Flush();
+
+                                    SendCmdList.RemoveAt(0);
+                                }
+
+                            }
+                            catch
+                            {
+                                Console.WriteLine("Send Fail:" + SendCmdList.First());
+                            }
+                        }
+                    }
                 }
             }
 
-            lock (SendCmdList)
-            {
-                while (SendCmdList.Count > 0)
-                {
-                    Byte[] dcB = System.Text.Encoding.ASCII.GetBytes(SendCmdList.First());
-                    stream.Write(dcB, 0, dcB.Length);
-
-                    SendCmdList.RemoveAt(0);
-                }
-            }
+           
         }
 
         public void Dial()
         {
-            lock (SendCmdList)
-                {
+          
+                //SendCmdList.Add("AT+CMER\r");
+                //SendCmdList.Add("AT+CIND=?\r");
 
 
-                 SendCmdList.Add("AT+CMER\r");
-                 SendCmdList.Add("AT+CIND=?\r");
-                 SendCmdList.Add("AT+BRSF=\r");
-                    SendCmdList.Add("AT+CLIP=1\r");
+                //SendCmdList.Add("AT+CLIP=1\r");
 
-                    //String dialCmd1 = ;
-                    //String dialCmd2 = ;
-                    //String dialCmd3 = ;
-                    //String dialCmd4 = "ATD117;\r";
+                //"ATD117;\r";
 
-                    //Byte[] dcB = System.Text.Encoding.ASCII.GetBytes(dialCmd1);
-                    //peerStream.Write(dcB, 0, dcB.Length);
+            
 
-                    //Byte[] sRes = new Byte[200];
-                    //peerStream.Read(sRes, 0, 199);
-                    //Console.WriteLine("\n\r----------\n\r" + System.Text.Encoding.ASCII.GetString(sRes));
-
-                    //dcB = System.Text.Encoding.ASCII.GetBytes(dialCmd2);
-                    //peerStream.Write(dcB, 0, dcB.Length);
-
-                    //peerStream.Read(sRes, 0, 199);
-                    //Console.WriteLine("\n\r----------\n\r" + System.Text.Encoding.ASCII.GetString(sRes));
-
-                    //dcB = System.Text.Encoding.ASCII.GetBytes(dialCmd3);
-                    //peerStream.Write(dcB, 0, dcB.Length);
-
-                    //peerStream.Read(sRes, 0, 199);
-                    //Console.WriteLine("\n\r----------\n\r" + System.Text.Encoding.ASCII.GetString(sRes));
-
-                    //dcB = System.Text.Encoding.ASCII.GetBytes(dialCmd4);
-                    //peerStream.Write(dcB, 0, dcB.Length);
-                }
-            //});
         }
 
     }

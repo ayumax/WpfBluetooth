@@ -87,13 +87,16 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
             string handle = "";
 
             XmlDocument doc = new XmlDocument();
+            doc.XmlResolver = null;
+            //VCardsListenXML = VCardsListenXML.Replace(@"<!DOCTYPE vcard-listing SYSTEM “vcard-listing.dtd”>", "");
+
             doc.Load(new StringReader(VCardsListenXML));
 
             XmlNodeList nodeList = doc.DocumentElement.SelectNodes("card");
 
             foreach (XmlNode nd in nodeList)
             {
-                handle = nd.Attributes["handle"].ToString();
+                handle = nd.Attributes["handle"].Value.ToString();
                 break;
             }
 

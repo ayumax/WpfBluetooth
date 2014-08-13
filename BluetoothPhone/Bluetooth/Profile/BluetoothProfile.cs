@@ -28,8 +28,11 @@ namespace BluetoothPhone.Bluetooth.Profile
             this.ProfileID = ProfileID;
         }
 
-        public void Connect(BluetoothDeviceInfo device)
+        public void Connect(BluetoothDeviceInfo device, PairingSupport pairSupport)
         {
+            //pairSupport.OnConnected += pairSupport_OnConnected;
+            //pairSupport.Connecting(LocalClient, device, ProfileID);
+
             LocalClient.Connect(device.DeviceAddress, ProfileID);
 
             ConnectedDevice = device;
@@ -38,8 +41,15 @@ namespace BluetoothPhone.Bluetooth.Profile
             OnConnected();
         }
 
+        void pairSupport_OnConnected(BluetoothDeviceInfo obj)
+        {
+            Console.WriteLine("OnConnected:{0}", this.GetType());
+            OnConnected();
+        }
+
         protected virtual void OnConnected()
         {
+           
         }
     }
 }

@@ -102,20 +102,29 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
 
         public PhoneBook GetPhoneBookFromPhoneNumber(PbapFolder Folder, string PhoneNumber)
         {
-            using (ObexGetStream Stream = PullvCardListing(Folder, 1, 0, PhoneNumber))
-            {
-                byte[] ba = new byte[UInt16.MaxValue];
-                int readSize = Stream.Read(ba, 0, UInt16.MaxValue);
+           PhoneBook book = null;
 
-                string handle = VCardReader.ParseVCardListenXML(UTF8Encoding.UTF8.GetString(ba, 0, readSize));
+           var t = Task.Factory.StartNew(() =>
+           {
+               string handle = String.Empty;
 
-                if (!String.IsNullOrWhiteSpace(handle))
-                {
-                    return GetPhoneBook(Folder, handle);
-                }
-            }
+               using (ObexGetStream Stream = PullvCardListing(Folder, 1, 0, PhoneNumber))
+               {
+                   byte[] ba = new byte[UInt16.MaxValue];
+                   int readSize = Stream.Read(ba, 0, UInt16.MaxValue);
 
-            return null;
+                   handle = VCardReader.ParseVCardListenXML(UTF8Encoding.UTF8.GetString(ba, 0, readSize));
+               }
+
+               if (!String.IsNullOrWhiteSpace(handle))
+               {
+                   book = GetPhoneBook(Folder, handle);
+               }
+           });
+        
+            t.Wait();
+
+            return book;
         }
 
         private PhoneBook GetPhoneBook(PbapFolder Folder, string handle)

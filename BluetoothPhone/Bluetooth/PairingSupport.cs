@@ -12,23 +12,23 @@ using InTheHand.Net.Sockets;
 
 namespace BluetoothPhone.Bluetooth
 {
-    class Pairing
+    class PairingSupport
     {
         private BluetoothClient localClient;
 
 
         private BluetoothWin32Authentication _win32Auth;
 
-        private const string DEVICE_PIN = "0000";
+        public const string DEVICE_PIN = "0000";
 
 
         public event Action<BluetoothDeviceInfo> OnSearchDevice;
         public event Action<BluetoothDeviceInfo> OnConnected;
 
 
-        public Pairing(BluetoothClient client)
+        public PairingSupport()
         {
-            this.localClient = client;
+            this.localClient = new BluetoothClient();
         }
 
         public void Search()
@@ -78,10 +78,12 @@ namespace BluetoothPhone.Bluetooth
 
             if (!device.Authenticated)
             {
-                device.SetServiceState(BluetoothService.PhonebookAccessPse, true);
+                //device.SetServiceState(BluetoothService.Handsfree, true);
 
                 _win32Auth = new BluetoothWin32Authentication(HandleWin32Auth);
 
+                localClient.SetPin(DEVICE_PIN);
+                //localClient.SetPin(device.DeviceAddress, DEVICE_PIN);
 
                 // replace DEVICE_PIN here, synchronous method, but fast
                 return BluetoothSecurity.PairRequest(device.DeviceAddress, DEVICE_PIN);
@@ -104,16 +106,16 @@ namespace BluetoothPhone.Bluetooth
             e.Confirm = true;
         }
 
-        public void Connecting(BluetoothDeviceInfo device, Guid service)
+        public void Connecting(BluetoothClient targetClient, BluetoothDeviceInfo device, Guid service)
         {
             // check if device is paired
             //if (device.Authenticated)
             //{
             //  set pin of device to connect with
-            localClient.SetPin(DEVICE_PIN);
+            targetClient.SetPin(device.DeviceAddress, DEVICE_PIN);
 
             // async connection method
-            localClient.BeginConnect(device.DeviceAddress, service, new AsyncCallback(Connect), device);
+            targetClient.BeginConnect(device.DeviceAddress, service, new AsyncCallback(Connect), device);
             //}
 
         }
@@ -126,10 +128,12 @@ namespace BluetoothPhone.Bluetooth
                 // client is connected now :)
                 BluetoothDeviceInfo device = result.AsyncState as BluetoothDeviceInfo;
 
-
-                if (OnConnected != null)
+                if (device.Connected)
                 {
-                    OnConnected(device);
+                    if (OnConnected != null)
+                    {
+                        OnConnected(device);
+                    }
                 }
             }
         }

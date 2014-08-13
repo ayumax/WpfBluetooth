@@ -21,15 +21,12 @@ namespace BluetoothPhone
         public void InitPhone()
         {
             blueTooth = new Client();
-            BluetoothDeviceInfo[] devices = blueTooth.GetPairDevices();
+            blueTooth.InitPhone("SC-02E");
+        }
 
-            foreach(BluetoothDeviceInfo device in devices)
-            {
-                if (device.DeviceName == "SC-02E")
-                {
-                    blueTooth.Connect(device);
-                }
-            }
+        public void Pairing()
+        {
+            blueTooth.Pairing();
         }
 
         public void Tel()

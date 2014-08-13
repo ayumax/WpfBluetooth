@@ -33,9 +33,6 @@
     <Reference Include="Brecham.Obex">
       <HintPath>..\packages\Brecham.Obex.1.7\lib\net\Brecham.Obex.dll</HintPath>
     </Reference>
-    <Reference Include="InTheHand.Net.Personal">
-      <HintPath>..\packages\32feet.NET.3.5.0.0\lib\net\InTheHand.Net.Personal.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -46,7 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Bluetooth\Client.cs" />
-    <Compile Include="Bluetooth\Pairing.cs" />
+    <Compile Include="Bluetooth\PairingSupport.cs" />
     <Compile Include="Bluetooth\Profile\BluetoothProfile.cs" />
     <Compile Include="Bluetooth\Profile\Hfp\Hfp.cs" />
     <Compile Include="Bluetooth\Profile\Pbap\Pbap.cs" />
@@ -59,7 +56,12 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\32feet-105180\InTheHand.Net.Personal\InTheHand.Net.Personal\InTheHand.Net.Personal.FX2.csproj">
+      <Project>{98bdde14-8f8c-40cc-9e45-5bac73573ef4}</Project>
+      <Name>InTheHand.Net.Personal.FX2</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
