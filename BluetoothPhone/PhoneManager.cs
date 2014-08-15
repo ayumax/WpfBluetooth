@@ -21,6 +21,7 @@ namespace BluetoothPhone
         public void InitPhone()
         {
             blueTooth = new Client();
+            //blueTooth.InitPhone("あゆまのiPhone5c");
             blueTooth.InitPhone("SC-02E");
         }
 
@@ -28,6 +29,16 @@ namespace BluetoothPhone
         public void Tel()
         {
             blueTooth.Tel("05058833540");
+        }
+
+        public void Hook()
+        {
+            blueTooth.Hook();
+        }
+
+        public void Terminate()
+        {
+            blueTooth.Terminate();
         }
 
         public void getBook()

@@ -89,6 +89,18 @@ namespace BluetoothPhone.Bluetooth
             ProfileHfp.Dial(PhoneNumber);
         }
 
+        public void Hook()
+        {
+            ProfileHfp.Hook();
+        }
+
+        public void Terminate()
+        {
+            ProfileHfp.Terminate();
+        }
+
+        
+
         public PhoneBook[] getPhoneBooks(PbapFolder Folder, int MaxNum = -1)
         {
             return ProfilePbap.GetPhoneBooks(Folder, MaxNum);

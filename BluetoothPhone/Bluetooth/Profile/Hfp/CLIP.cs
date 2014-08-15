@@ -14,7 +14,8 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
             if (commands.Length > 1)
             {
                 string phoneNumber = commands[0].Trim(new char[] { '\"' });
-                hfp.DoRing(phoneNumber);
+
+                BluetoothPhone.Utils.CurrentDispatcher.Dispatch(new Action(() => hfp.DoRing(phoneNumber)));
             }
         }
     }

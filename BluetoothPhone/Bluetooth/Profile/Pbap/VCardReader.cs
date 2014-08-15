@@ -87,8 +87,9 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
             string handle = "";
 
             XmlDocument doc = new XmlDocument();
+
+            // dtdなしでもエラーにならないようにする
             doc.XmlResolver = null;
-            //VCardsListenXML = VCardsListenXML.Replace(@"<!DOCTYPE vcard-listing SYSTEM “vcard-listing.dtd”>", "");
 
             doc.Load(new StringReader(VCardsListenXML));
 

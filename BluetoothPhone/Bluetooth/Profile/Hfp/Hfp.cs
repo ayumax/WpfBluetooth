@@ -58,22 +58,37 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
 
             
            ServiceLevelConnectionInitialization();
+
+           
         }
 
         private void ServiceLevelConnectionInitialization()
         {
             lock (SendCmdList)
             {
-                SendCmdList.Add("AT+BRSF=0\r");
+                SendCmdList.Add("AT+BRSF=185");
 
-                SendCmdList.Add("AT+CIND=?\r");
+                SendCmdList.Add("AT+BAC=1,2,12");
 
-                SendCmdList.Add("AT+CIND?\r");
+               
 
-                SendCmdList.Add("AT+CMER=3,0,0,1,0\r");
+                SendCmdList.Add("AT+CIND=?");
 
+                SendCmdList.Add("AT+CIND?");
 
-                SendCmdList.Add("AT+CLIP=1\r");
+                SendCmdList.Add("AT+CMER=3,0,0,1,0");
+
+                SendCmdList.Add("AT+CHLD=?");
+
+          
+                // 着信番号表示
+                SendCmdList.Add("AT+CLIP=1");
+
+                // Audio Connect
+                SendCmdList.Add("AT+BCC");
+
+                SendCmdList.Add("AT+BCS=1");
+                
             }
         }
 
@@ -118,18 +133,18 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
             string[] values = receiveValue.Split(new char[] { ':' });
             string className = values[0].TrimStart(new char[] { '+' }).Trim();
 
-            try
+            
+            Type commandtype = Type.GetType("BluetoothPhone.Bluetooth.Profile.Hfp." + className);
+            if (commandtype != null)
             {
-                IHfpCommandParser CommandParser = Activator.CreateInstance(Type.GetType("BluetoothPhone.Bluetooth.Profile.Hfp." + className)) as IHfpCommandParser;
+                IHfpCommandParser CommandParser = Activator.CreateInstance(commandtype) as IHfpCommandParser;
                 if (CommandParser != null)
                 {
                     string parameter = (values.Length > 1) ? values[1].Trim() : String.Empty;
                     CommandParser.ReciveCommand(parameter, this);
                 }
             }
-            catch
-            {
-            }
+           
         }
 
         private void Send()
@@ -144,7 +159,7 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
 
                         NetworkStream stream = LocalClient.GetStream();
 
-                        Byte[] dcB = System.Text.Encoding.ASCII.GetBytes(SendCmdList.First());
+                        Byte[] dcB = System.Text.Encoding.ASCII.GetBytes(SendCmdList.First() + "\r");
                         stream.Write(dcB, 0, dcB.Length);
 
                         Console.WriteLine("Send:" + SendCmdList.First());
@@ -160,30 +175,41 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
             }
         }
 
+       
+
+        public void DoRing(string PhoneNumber)
+        {
+            if (OnRing != null)
+            {
+                OnRing(PhoneNumber);
+            }           
+        }
+
+
         public void Dial(string PhoneNumber)
         {
             lock (SendCmdList)
             {
-                SendCmdList.Add(String.Format("ATD{0}\r", PhoneNumber));
+                SendCmdList.Add(String.Format("ATD{0}", PhoneNumber));
             }
         }
 
-        public void DoRing(string PhoneNumber)
+        public void Hook()
         {
-            System.Windows.Threading.Dispatcher dispatcher = System.Windows.Application.Current.Dispatcher;
-            if (dispatcher.CheckAccess())
+            lock (SendCmdList)
             {
-                if (OnRing != null)
-                {
-                    OnRing(PhoneNumber);
-                }
+                //ATA
+                SendCmdList.Add("ATA");
             }
-            else
-            {
-                dispatcher.Invoke(() => DoRing(PhoneNumber));
-            }
+        }
 
-           
+        public void Terminate()
+        {
+            lock (SendCmdList)
+            {
+                //ATH
+                SendCmdList.Add("AT+CHUP");
+            }
         }
     }
 }

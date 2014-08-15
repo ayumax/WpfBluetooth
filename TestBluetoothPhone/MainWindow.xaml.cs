@@ -42,5 +42,15 @@ namespace TestBluetoothPhone
         {
             phone.getBook();
         }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            phone.Terminate();
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+            phone.Hook();
+        }
     }
 }

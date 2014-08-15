@@ -3,7 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="350" Width="525" Initialized="Window_Initialized">
     <StackPanel Orientation="Vertical">
-        <Button Content="tel" Width="100" Height="25" Click="Button_Click" />
+        <StackPanel Orientation="Horizontal">
+            <Button Content="tel" Width="100" Height="25" Click="Button_Click" />
+                     <Button Content="hook" Width="100" Height="25" Click="Button_Click_2" />
+            <Button Content="terminate" Width="100" Height="25" Click="Button_Click_1" />
+        </StackPanel>
+        
         <Button Content="pbap" Width="100" Height="25" Click="Button2_Click" />
     </StackPanel>
 </Window>
