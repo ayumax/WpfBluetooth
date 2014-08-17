@@ -51,11 +51,11 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
         protected override void OnConnected()
         {
             LocalClient.Encrypt = true;
-            //LocalClient.Client.ReceiveTimeout = 5000;
-            //LocalClient.Client.SendTimeout = 5000;
-
-            ConnectedDevice.SetServiceState(BluetoothService.PhonebookAccessPse, true);
-
+            LocalClient.Client.ReceiveTimeout = 15000;
+            LocalClient.Client.SendTimeout = 15000;
+            LocalClient.Client.ReceiveBufferSize = UInt16.MaxValue;
+            LocalClient.Client.SendBufferSize = UInt16.MaxValue;
+            
             SessionConnect();
         }
 
@@ -91,6 +91,7 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
 
             var t = Task.Factory.StartNew(() =>
             {
+
                 int length = GetPhoneBookCount(Folder);
                 if (MaxNum > 0)
                 {
@@ -167,13 +168,12 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
 
             headers.AddType("x-bt/phonebook");
             headers.Add(ObexHeaderId.Name, Folder.FullPath());
+
             headers.Add(ObexHeaderId.AppParameters, new byte[] {  
                     0x06, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,                             // Filter
-                     //0x06, 0x08, 0xE1, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,                             // Filter
                     0x07, 0x01, 0x01,                                                                       // Format 0x00 = 2.1 0x01 = 3.0
                     0x04, 0x02, (byte)((MaxListCount >> 8) & 0xFF), (byte)(MaxListCount & 0xFF),            // MaxListCount
                     0x05, 0x02, (byte)((ListStartOffset >> 8) & 0xFF), (byte)(ListStartOffset & 0xFF) });   // ListStartOffset
-
 
             return session.Get(headers);
         }

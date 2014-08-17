@@ -6,8 +6,8 @@
     <StackPanel Orientation="Vertical">
 
         <GroupBox Header="Phone Books" Width="580" Height="310">
-            <ScrollViewer VerticalScrollBarVisibility="Visible">
-                <ListBox ItemsSource="{Binding Books}" >
+            
+                <ListBox ItemsSource="{Binding Books}"  >
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <StackPanel Orientation="Vertical"/>
@@ -20,7 +20,7 @@
                     </ListBox.ItemTemplate>
 
                 </ListBox>
-            </ScrollViewer>
+           
         </GroupBox>
        
     </StackPanel>

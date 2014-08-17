@@ -51,36 +51,48 @@ namespace TestBluetoothPhone
             this.phoneManager = phoneManager;
         }
 
-        private RelayCommand callCommand;
-        public RelayCommand CallCommand
-        {
-            get { return callCommand = callCommand ?? new RelayCommand(ExcuteCallCommand); }
-        }
-
-        private void ExcuteCallCommand()
-        {
-            phoneManager.Tel(Book.PhoneNumbers[0]) ;
-        }
+       
 
         private string maskStr(string fromStr)
         {
             int length = fromStr.Length;
 
-            string retStr = String.Empty;
+            string retStr = fromStr;
             if (length > 3)
             {
                 retStr = fromStr.Substring(0, 3);
+
+                int addCount = length - retStr.Length;
+
+                for (int i = 0; i < addCount; ++i)
+                {
+                    retStr += "*";
+                }
+
             }
 
-            int addCount = length - retStr.Length;
-
-            for (int i = 0; i < addCount; ++i)
-            {
-                retStr += "*";
-            }
-
+           
             return retStr;
         }
 
+
+        /////// Command ////////
+        private RelayCommand callCommand;
+        public RelayCommand CallCommand
+        {
+            get { return callCommand = callCommand ?? new RelayCommand(() => phoneManager.Tel(Book.PhoneNumbers[0])); }
+        }
+
+        private RelayCommand acceptCommand;
+        public RelayCommand AcceptCommand
+        {
+            get { return acceptCommand = acceptCommand ?? new RelayCommand(() => phoneManager.Hook()); }
+        }
+
+        private RelayCommand terminateCommand;
+        public RelayCommand TerminateCommand
+        {
+            get { return terminateCommand = terminateCommand ?? new RelayCommand(() => phoneManager.Terminate()); }
+        }
     }
 }

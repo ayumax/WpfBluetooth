@@ -35,7 +35,7 @@ namespace TestBluetoothPhone
                     {
                         window = new PhoneConnectWindow();
                         PhoneBook book = new PhoneBook();
-                        book.Name = "着信...";
+                        book.Name = "着信中";
                         window.DataContext = new PhoneBookViewModel(book, this.Model);
                         window.Show();
                     }
@@ -45,7 +45,7 @@ namespace TestBluetoothPhone
                     {
                         window = new PhoneConnectWindow();
                         PhoneBook book = new PhoneBook();
-                        book.Name = "発信...";
+                        book.Name = "発信中";
                         window.DataContext = new PhoneBookViewModel(book, this.Model);
                         window.Show();
                     }
