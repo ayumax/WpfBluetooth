@@ -1,14 +1,27 @@
 ﻿<Window x:Class="TestBluetoothPhone.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525" Initialized="Window_Initialized">
+        xmlns:local="clr-namespace:TestBluetoothPhone"
+        Title="MainWindow" Height="350" Width="600" >
     <StackPanel Orientation="Vertical">
-        <StackPanel Orientation="Horizontal">
-            <Button Content="tel" Width="100" Height="25" Click="Button_Click" />
-                     <Button Content="hook" Width="100" Height="25" Click="Button_Click_2" />
-            <Button Content="terminate" Width="100" Height="25" Click="Button_Click_1" />
-        </StackPanel>
-        
-        <Button Content="pbap" Width="100" Height="25" Click="Button2_Click" />
+
+        <GroupBox Header="Phone Books" Width="580" Height="310">
+            <ScrollViewer VerticalScrollBarVisibility="Visible">
+                <ListBox ItemsSource="{Binding Books}" >
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <local:PhoneBookRow />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+
+                </ListBox>
+            </ScrollViewer>
+        </GroupBox>
+       
     </StackPanel>
 </Window>

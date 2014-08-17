@@ -9,6 +9,7 @@ using InTheHand.Net.Bluetooth;
 using InTheHand.Net.Bluetooth.AttributeIds;
 using InTheHand.Net.Ports;
 using InTheHand.Net.Sockets;
+using InTheHand.Windows.Forms;
 
 using BluetoothPhone.Bluetooth.Profile;
 using BluetoothPhone.Bluetooth.Profile.Pbap;
@@ -18,24 +19,38 @@ namespace BluetoothPhone.Bluetooth
 {
     public class Client
     {
+        public event Action<string, PhoneBook> OnRing;
+        public event Action<PhoneStatus.PhoneStatusKind> OnUpdatePhoneStatus;
+
         private string ConnectPhoneName;
 
-        private PairingSupport bluetoothPair;
         private Pbap ProfilePbap;
         private Hfp ProfileHfp;
 
+        private PhoneStatus.PhoneStatusKind Status;
+
         public Client()
         {
-            bluetoothPair = new PairingSupport();
-
             ProfilePbap = new Pbap();
             ProfileHfp = new Hfp();
 
             ProfileHfp.OnRing += ProfileHfp_OnRing;
+            ProfileHfp.OnUpdatePhoneStatus += ProfileHfp_OnUpdatePhoneStatus;
         }
 
+        public void InitAtBluetoothDialog()
+        {
+            SelectBluetoothDeviceDialog dlg = new SelectBluetoothDeviceDialog();
+            if (dlg.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                InitPhone(dlg.SelectedDevice.DeviceName);
+            }
+        }
+
+
+
  
-        public void InitPhone(string phoneName)
+        public bool InitPhone(string phoneName)
         {
             ConnectPhoneName = phoneName;
 
@@ -45,12 +60,13 @@ namespace BluetoothPhone.Bluetooth
             {
                 if (device.DeviceName == ConnectPhoneName)
                 {
-                    Connect(device);
+                    if (!Connect(device)) return false;
 
-                    return;
+                    return true;
                 }
             }
 
+            return false;
         }
 
         public BluetoothDeviceInfo[] GetPairDevices()
@@ -62,16 +78,10 @@ namespace BluetoothPhone.Bluetooth
 
         public bool Connect(BluetoothDeviceInfo device)
         {
-            if (device.Connected)
-            {
-                // すでに接続済み
-                return true;
-            }
-
             try
             {
-                ProfilePbap.Connect(device, bluetoothPair);
-                ProfileHfp.Connect(device, bluetoothPair);
+                ProfilePbap.Connect(device);
+                ProfileHfp.Connect(device);
 
                 Console.WriteLine("OnConnected");
             }
@@ -107,15 +117,84 @@ namespace BluetoothPhone.Bluetooth
         }
         
 
-         
-
-
-        void ProfileHfp_OnRing(string phoneNumber)
+        private void ProfileHfp_OnRing(string phoneNumber)
         {
-            PhoneBook book = ProfilePbap.GetPhoneBookFromPhoneNumber(PbapFolder.pb, phoneNumber);
-            if (book != null)
+            if (OnRing == null)
             {
-                Console.WriteLine("{0}, {1}", book.Name, book.PhoneNumbers[0]);
+                return;
+            }
+
+            PhoneBook book = ProfilePbap.GetPhoneBookFromPhoneNumber(PbapFolder.pb, phoneNumber);
+            if (book == null)
+            {
+                book = new PhoneBook();
+                book.PhoneNumbers.Add(phoneNumber);
+            }
+
+            OnRing(phoneNumber, book);   
+        }
+
+        private void ProfileHfp_OnUpdatePhoneStatus(string changedStatus)
+        {
+            if (OnUpdatePhoneStatus == null)
+            {
+                return;
+            }
+
+
+            switch (changedStatus)
+            {
+                case HfpPhoneStatus.STATUS_CALL:
+                    OnHfpPhoneStatusCallChanged();
+                    break;
+                case HfpPhoneStatus.STATUS_CALLSETUP:
+                    OnHfpPhoneStatusCallSetupChanged();
+                    break;
+            }
+
+        }
+
+        private void OnHfpPhoneStatusCallChanged()
+        {
+            switch(ProfileHfp.PhoneStatusValue.GetStatus(HfpPhoneStatus.STATUS_CALL))
+            {
+                case 0:
+                    if (Status != PhoneStatus.PhoneStatusKind.phoneNormal)
+                    {
+                        Status = PhoneStatus.PhoneStatusKind.phoneNormal;
+                        OnUpdatePhoneStatus(Status);
+                    }
+                    break;
+                case 1:
+                    Status = PhoneStatus.PhoneStatusKind.phoneConnect;
+                    OnUpdatePhoneStatus(Status);
+                    break;
+            }
+            
+        }
+
+        private void OnHfpPhoneStatusCallSetupChanged()
+        {
+            switch (ProfileHfp.PhoneStatusValue.GetStatus(HfpPhoneStatus.STATUS_CALLSETUP))
+            {
+                case 0:
+                    if (Status != PhoneStatus.PhoneStatusKind.phoneNormal)
+                    {
+                        Status = PhoneStatus.PhoneStatusKind.phoneNormal;
+                        OnUpdatePhoneStatus(Status);
+                    }
+                    break;
+                case 1:
+                   Status = PhoneStatus.PhoneStatusKind.phoneIncomingCalling;
+                    OnUpdatePhoneStatus(Status);
+                    break;
+                case 2:
+                    Status = PhoneStatus.PhoneStatusKind.phoneOutgoingCalling;
+                    OnUpdatePhoneStatus(Status);
+                    break;
+                case 3:
+                    //OnUpdatePhoneStatus(PhoneStatus.PhoneStatusKind.);
+                    break;
             }
         }
 

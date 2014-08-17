@@ -12,23 +12,52 @@ namespace BluetoothPhone
 {
     public class PhoneManager
     {
+        public delegate void OnRingHandler(string phoneNumber, PhoneBook book);
+        public event OnRingHandler OnRing;
+
+        public delegate void OnUpdatePhoneStatusHandler(PhoneStatus.PhoneStatusKind Status);
+        public event OnUpdatePhoneStatusHandler OnUpdatePhoneStatus;
+
         private Client blueTooth;
 
         public PhoneManager()
         {
-        }
-
-        public void InitPhone()
-        {
             blueTooth = new Client();
-            //blueTooth.InitPhone("あゆまのiPhone5c");
-            blueTooth.InitPhone("SC-02E");
+            blueTooth.OnRing += blueTooth_OnRing;
+            blueTooth.OnUpdatePhoneStatus += blueTooth_OnUpdatePhoneStatus;
         }
 
 
-        public void Tel()
+        public void InitAtBluetoothDialog()
         {
-            blueTooth.Tel("05058833540");
+            blueTooth.InitAtBluetoothDialog();
+        }
+
+        public string[] GetPairingDevices()
+        {
+            List<string> deviceNameList = new List<string>();
+
+            BluetoothDeviceInfo[] devices = blueTooth.GetPairDevices();
+            foreach (BluetoothDeviceInfo device in devices)
+            {
+                deviceNameList.Add(device.DeviceName);
+            }
+
+            return deviceNameList.ToArray();
+        }
+
+        public bool ConnectDivece(string deviceName)
+        {
+            return blueTooth.InitPhone(deviceName);
+        }
+
+
+       
+
+
+        public void Tel(string phoneNumber)
+        {
+            blueTooth.Tel(phoneNumber);
         }
 
         public void Hook()
@@ -41,11 +70,23 @@ namespace BluetoothPhone
             blueTooth.Terminate();
         }
 
-        public void getBook()
+        public PhoneBook[] GetBook()
         {
-            blueTooth.getPhoneBooks(Bluetooth.Profile.Pbap.PbapFolder.pb);
+            return blueTooth.getPhoneBooks(Bluetooth.Profile.Pbap.PbapFolder.pb);
         }
 
-        
+
+        /**
+         * Event Handler
+         * */
+        private void blueTooth_OnRing(string phoneNumber, PhoneBook book)
+        {
+            if (OnRing != null) OnRing(phoneNumber, book);
+        }
+
+        private void blueTooth_OnUpdatePhoneStatus(PhoneStatus.PhoneStatusKind Status)
+        {
+            if (OnUpdatePhoneStatus != null) OnUpdatePhoneStatus(Status);
+        }
     }
 }

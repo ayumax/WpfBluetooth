@@ -10,6 +10,16 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
     {
         public void ReciveCommand(string command, Hfp hfp)
         {
+            string[] commands = command.Split(new char[] { ',' });
+
+            if (commands.Length >= 2)
+            {
+                int SetIndex = int.Parse(commands[0]);
+                hfp.PhoneStatusValue.SetStatus(SetIndex, int.Parse(commands[1]));
+
+
+                BluetoothPhone.Utils.CurrentDispatcher.Dispatch(new Action(() => hfp.DoPhoneStatusUpdate(SetIndex)));
+            }
         }
     }
 }

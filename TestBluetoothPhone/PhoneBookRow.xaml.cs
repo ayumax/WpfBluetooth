@@ -16,15 +16,13 @@ using System.Windows.Shapes;
 namespace TestBluetoothPhone
 {
     /// <summary>
-    /// MainWindow.xaml の相互作用ロジック
+    /// PhoneBookRow.xaml の相互作用ロジック
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class PhoneBookRow : UserControl
     {
-        public MainWindow()
+        public PhoneBookRow()
         {
             InitializeComponent();
-
-            DataContext = new PhoneManagerViewModel();
         }
     }
 }

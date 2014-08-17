@@ -19,17 +19,21 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
     class Hfp : BluetoothProfile
     {
         public event Action<string> OnRing;
+        public event Action<string> OnUpdatePhoneStatus;
 
         private CancellationTokenSource TaskCancellation;
         private List<string> SendCmdList;
 
         private bool IsSendOK;
 
+        public HfpPhoneStatus PhoneStatusValue;
+
         public Hfp()
             : base(BluetoothService.Handsfree)
         {
             IsSendOK = true;
             SendCmdList = new List<string>();
+            PhoneStatusValue = new HfpPhoneStatus();
         }
 
         protected override void OnConnected()
@@ -68,7 +72,7 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
             {
                 SendCmdList.Add("AT+BRSF=185");
 
-                SendCmdList.Add("AT+BAC=1,2,12");
+                //SendCmdList.Add("AT+BAC=1,2,12");
 
                
 
@@ -78,16 +82,16 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
 
                 SendCmdList.Add("AT+CMER=3,0,0,1,0");
 
-                SendCmdList.Add("AT+CHLD=?");
+                //SendCmdList.Add("AT+CHLD=?");
 
           
                 // 着信番号表示
                 SendCmdList.Add("AT+CLIP=1");
 
                 // Audio Connect
-                SendCmdList.Add("AT+BCC");
+                //SendCmdList.Add("AT+BCC");
 
-                SendCmdList.Add("AT+BCS=1");
+                //SendCmdList.Add("AT+BCS=1");
                 
             }
         }
@@ -112,7 +116,7 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
                         {
                             Console.WriteLine(receiveValue);
 
-                            if (receiveValue == "OK" || receiveValue == "ReceiveString")
+                            if (receiveValue == "OK" || receiveValue == "ERROR")
                             {
                                 IsSendOK = true;
                                 Thread.Sleep(100);  // "OK"のあとすぐに送信すると受け付けてくれないため100ms待つ
@@ -177,13 +181,7 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
 
        
 
-        public void DoRing(string PhoneNumber)
-        {
-            if (OnRing != null)
-            {
-                OnRing(PhoneNumber);
-            }           
-        }
+ 
 
 
         public void Dial(string PhoneNumber)
@@ -209,6 +207,27 @@ namespace BluetoothPhone.Bluetooth.Profile.Hfp
             {
                 //ATH
                 SendCmdList.Add("AT+CHUP");
+            }
+        }
+
+
+        /* *************************************
+         * For IHfpCommandParser
+         * *************************************/
+
+        public void DoRing(string PhoneNumber)
+        {
+            if (OnRing != null)
+            {
+                OnRing(PhoneNumber);
+            }
+        }
+
+        public void DoPhoneStatusUpdate(int UpdateIndex)
+        {
+            if (OnUpdatePhoneStatus != null)
+            {
+                OnUpdatePhoneStatus(PhoneStatusValue.GetStatusName(UpdateIndex));
             }
         }
     }

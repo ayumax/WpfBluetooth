@@ -41,6 +41,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -52,15 +53,17 @@
   <ItemGroup>
     <Compile Include="Bluetooth\Client.cs" />
     <Compile Include="Bluetooth\PairingSupport.cs" />
+    <Compile Include="Bluetooth\PhoneStatus.cs" />
     <Compile Include="Bluetooth\Profile\BluetoothProfile.cs" />
     <Compile Include="Bluetooth\Profile\Hfp\CIEV.cs" />
     <Compile Include="Bluetooth\Profile\Hfp\CIND.cs" />
     <Compile Include="Bluetooth\Profile\Hfp\CLIP.cs" />
     <Compile Include="Bluetooth\Profile\Hfp\Hfp.cs" />
     <Compile Include="Bluetooth\Profile\Hfp\IHfpCommandParser.cs" />
+    <Compile Include="Bluetooth\Profile\Hfp\HfpPhoneStatus.cs" />
     <Compile Include="Bluetooth\Profile\Pbap\Pbap.cs" />
     <Compile Include="Bluetooth\Profile\Pbap\VCardReader.cs" />
-    <Compile Include="Bluetooth\Profile\Pbap\PhoneBook.cs" />
+    <Compile Include="Bluetooth\PhoneBook.cs" />
     <Compile Include="Bluetooth\Server.cs" />
     <Compile Include="PhoneManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

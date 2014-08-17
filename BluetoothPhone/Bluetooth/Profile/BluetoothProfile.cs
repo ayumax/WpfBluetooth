@@ -18,7 +18,7 @@ namespace BluetoothPhone.Bluetooth.Profile
     {
         public BluetoothClient LocalClient { get; private set; }
 
-        private Guid ProfileID;
+        protected Guid ProfileID;
         protected BluetoothDeviceInfo ConnectedDevice;
 
         public BluetoothProfile(Guid ProfileID)
@@ -28,11 +28,8 @@ namespace BluetoothPhone.Bluetooth.Profile
             this.ProfileID = ProfileID;
         }
 
-        public void Connect(BluetoothDeviceInfo device, PairingSupport pairSupport)
+        public void Connect(BluetoothDeviceInfo device)
         {
-            //pairSupport.OnConnected += pairSupport_OnConnected;
-            //pairSupport.Connecting(LocalClient, device, ProfileID);
-
             LocalClient.Connect(device.DeviceAddress, ProfileID);
 
             ConnectedDevice = device;

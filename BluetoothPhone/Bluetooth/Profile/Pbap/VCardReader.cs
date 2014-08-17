@@ -64,7 +64,7 @@ namespace BluetoothPhone.Bluetooth.Profile.Pbap
                     string phoneNumber = strs[1];
                     phoneNumber = phoneNumber.Replace("-", String.Empty);
                     phoneNumber = phoneNumber.Replace(" ", String.Empty);
-                    phoneBook.PhoneNumbers.Add(strs[1]);
+                    phoneBook.PhoneNumbers.Add(phoneNumber);
                     break;
                 case "EMAIL":
                     phoneBook.EmailAddresss.Add(strs[1]);

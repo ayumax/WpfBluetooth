@@ -1,0 +1,17 @@
+﻿<UserControl x:Class="TestBluetoothPhone.PhoneBookRow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             >
+    <UserControl.InputBindings>
+        <MouseBinding Gesture="LeftDoubleClick" Command="{Binding CallCommand}" />
+    </UserControl.InputBindings>
+    
+    <StackPanel Orientation="Horizontal">
+        <Label Content="{Binding Name}" Width="100" Height="25" VerticalAlignment="Center" />
+        <Label Content="{Binding PhoneNumbers}" Width="120" Height="25" VerticalAlignment="Center" />
+        <Label Content="{Binding EmailAddresss}" Width="250" Height="25" VerticalAlignment="Center" />
+    </StackPanel>
+</UserControl>

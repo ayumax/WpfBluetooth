@@ -10,21 +10,18 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 namespace TestBluetoothPhone
 {
     /// <summary>
-    /// MainWindow.xaml の相互作用ロジック
+    /// PhoneConnectWindow.xaml の相互作用ロジック
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class PhoneConnectWindow : Window
     {
-        public MainWindow()
+        public PhoneConnectWindow()
         {
             InitializeComponent();
-
-            DataContext = new PhoneManagerViewModel();
         }
     }
 }
