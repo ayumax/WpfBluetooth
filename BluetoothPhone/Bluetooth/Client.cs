@@ -47,8 +47,6 @@ namespace BluetoothPhone.Bluetooth
             }
         }
 
-
-
  
         public bool InitPhone(string phoneName)
         {
